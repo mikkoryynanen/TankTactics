@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -17,37 +16,18 @@ type Room struct {
 	mu        sync.Mutex
 }
 
-func (r *Room) Run() {
-	r.IsRunning = true
+func (r *Room) AddClientAndRun(client *websocket.Conn) {
+	r.mu.Lock()
+	r.clients = append(r.clients, client)
+	r.mu.Unlock()
 
-	go r.readMessages()
-
-	// Endless loop
-	for {
-		r.mu.Lock()
-		fmt.Printf("Room %v has clients %v \n", r.Id, r.clients)
-		r.mu.Unlock()
-		// for _, client := range r.clients {
-		// 	fmt.Printf("client %v", client)
-		// 	// fmt.Printf("Room %v has clients %v \n", r.Id, r.clients)
-		// }
-
-		// TODO We could be doing something here with the messages that we've read from another thread
-
-		// r.readMessages()
-
-		// Tick rate of the room
-		time.Sleep(1 * time.Second)
-
-	}
+	go r.readClientMessages(client)
 }
 
-func (r *Room) readMessages() {
-	for _, client := range r.clients {
-		// TODO This should be closed from somewhere else?
-		// defer client.Close()
+func (r *Room) readClientMessages(client *websocket.Conn) {
+	defer client.Close()
 
-		// Waiting for message, blocking
+	for {
 		_, msg, err := client.ReadMessage()
 		if err != nil {
 			fmt.Printf("Failed to read message. err: %v\n", err)
@@ -60,11 +40,12 @@ func (r *Room) readMessages() {
 			fmt.Println("Failed to unmarshal json from message")
 		}
 
-		fmt.Println(message)
+		fmt.Printf("Received message. (roomId/addr:message) %v/%v: %v\n", client.NetConn().LocalAddr().String(), r.Id, message)
 
-		// 	err = c.WriteMessage(websocket.text)
-		// 	if err != nil {
-		// 		log.Fatal("Write message failed")
-		// 	}
+		bytes, _ := json.Marshal(message)
+		err = client.WriteMessage(websocket.TextMessage, bytes)
+		if err != nil {
+			fmt.Println("Write message failed")
+		}
 	}
 }

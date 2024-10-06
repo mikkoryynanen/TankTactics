@@ -33,9 +33,8 @@ func (a *App) handleConnection(w http.ResponseWriter, r *http.Request) {
 func (a *App) handleRoomConnection(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Connection received. Connecting to room...")
 
-	// queryParams := r.URL.Query()
-	roomId, err := uuid.Parse("c494027b-9d5a-4785-8b3b-89187f72c44a")
-	// roomId, err := uuid.Parse(queryParams.Get("roomId"))
+	queryParams := r.URL.Query()
+	roomId, err := uuid.Parse(queryParams.Get("roomId"))
 	if err != nil {
 		fmt.Println("failed to parse roomId")
 		return
@@ -57,7 +56,6 @@ func (a *App) handleRoomConnection(w http.ResponseWriter, r *http.Request) {
 func (a App) upgradeConnection(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
 	c, err := a.upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		// log.Fatal("Could not upgrade HTTP connection to Websocket")
 		fmt.Println("Could not upgrade HTTP connection to Websocket")
 		return nil, err
 	}
