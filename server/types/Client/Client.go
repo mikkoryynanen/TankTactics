@@ -1,18 +1,20 @@
-package messageTypes
-
-// TODO Maybe just types?
+package client
 
 import (
 	"encoding/json"
 	"fmt"
-	messageTypes "main/types"
+	messageTypes "main/types/payloads"
 
 	"github.com/gorilla/websocket"
 )
 
 type Client struct {
 	Conn     *websocket.Conn
-	Position messageTypes.Position
+	Position messageTypes.PositionPayload
+}
+
+func NewClient() *Client {
+  return &Client{}
 }
 
 // To be called once as goroutine
@@ -26,7 +28,7 @@ func (c *Client) ReadMessages() {
 			return
 		}
 
-		receivedPosition := messageTypes.Position{}
+		receivedPosition := messageTypes.PositionPayload{}
 		err = json.Unmarshal(msg, &receivedPosition)
 		if err != nil {
 			fmt.Println("Failed to unmarshal json from message")

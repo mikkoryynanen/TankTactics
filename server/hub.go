@@ -33,7 +33,7 @@ func (h *Hub) AddRoom(client *websocket.Conn) {
 func (h *Hub) ConnectToRoom(roomId uuid.UUID, client *websocket.Conn) bool {
 	if room, exist := h.rooms[roomId]; exist {
 		room.mu.Lock()
-		room.clients = append(room.clients, client)
+		// room.clients = append(room.clients, client)
 		h.rooms[roomId] = room
 		room.mu.Unlock()
 

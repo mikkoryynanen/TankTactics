@@ -1,10 +1,10 @@
-package messageTypes
+package payloads
 
-type Message struct {
+type MessagePayload struct {
 	Body string `json:"body"`
 }
 
-type Position struct {
+type PositionPayload struct {
 	PosX int32 `json:"posx"`
 	PosY int32 `json:"posy"`
 }
