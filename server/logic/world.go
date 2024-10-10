@@ -7,14 +7,15 @@ import (
 )
 
 type World struct {
-	clients map[uuid.UUID]*messageTypes.Client
+	clients []*messageTypes.Client
 }
 
-func (w World) Run() {
+// Run the world loop with TickRate
+func (w World) Run(tickRate int32) {
 }
 
 func (w World) TryAddClientValue(clientId uuid.UUID, position messageTypes.Position) {
-	if client, exists := w.clients[clientId]; exists {
+	for _, client := range w.clients {
 		// TODO Make sure we can actually make this move
 		// TODO We could use the rollback technique here
 

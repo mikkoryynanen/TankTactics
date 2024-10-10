@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"main/logic"
 	messageTypes "main/types"
 	"sync"
@@ -14,47 +12,32 @@ import (
 type Room struct {
 	Id        uuid.UUID
 	IsRunning bool
-	clients   []*websocket.Conn
+	clients   []*messageTypes.Client
 	mu        sync.Mutex
 	world     logic.World
 }
 
-func (r *Room) AddClientAndRun(client *websocket.Conn) {
-	r.mu.Lock()
-	r.clients = append(r.clients, client)
-	r.mu.Unlock()
-
-	go r.readClientMessages(client)
+func NewRoom() *Room {
+	return &Room{
+		world: logic.World{},
+	}
 }
 
-func (r *Room) readClientMessages(client *websocket.Conn) {
-	defer client.Close()
+func (r *Room) AddConnection(conn *websocket.Conn) {
+	r.addClient(conn)
+}
 
-	for {
-		_, msg, err := client.ReadMessage()
-		if err != nil {
-			fmt.Printf("Failed to read message. err: %v\n", err)
-			return
-		}
+func (r *Room) AddConnectionAndRun(conn *websocket.Conn) {
+	newClient := r.addClient(conn)
 
-		receivedPosition := messageTypes.Position{}
-		err = json.Unmarshal(msg, &receivedPosition)
-		if err != nil {
-			fmt.Println("Failed to unmarshal json from message")
-		}
+	go newClient.ReadMessages()
+}
 
-		// TODO Validate the payload
+func (r *Room) addClient(conn *websocket.Conn) *messageTypes.Client {
+	r.mu.Lock()
+	newClient := &messageTypes.Client{*conn}
+	r.clients = append(r.clients, newClient)
+	r.mu.Unlock()
 
-		fmt.Printf("Received message. (roomId/addr:message) %v/%v: %v\n", client.NetConn().LocalAddr().String(), r.Id, receivedPosition)
-
-		// TODO
-		// - Handle the message logic, what do we do when we get a message package
-		r.world.TryAddClientValue(receivedPosition)
-		// - Send back the computed response to that message
-
-		err = client.WriteMessage(websocket.TextMessage, msg)
-		if err != nil {
-			fmt.Println("Write message failed")
-		}
-	}
+	return newClient
 }

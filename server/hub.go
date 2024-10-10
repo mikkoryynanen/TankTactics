@@ -20,14 +20,14 @@ func NewHub() *Hub {
 func (h *Hub) AddRoom(client *websocket.Conn) {
 	newRoomId := uuid.New()
 
-	var newRoom Room
+	newRoom := NewRoom()
 	newRoom.Id = newRoomId
 
-	h.rooms[newRoomId] = &newRoom
+	h.rooms[newRoomId] = newRoom
 
 	fmt.Printf("Added room %v\n", newRoom.Id)
 
-	go newRoom.AddClientAndRun(client)
+	go newRoom.AddConnectionAndRun(client)
 }
 
 func (h *Hub) ConnectToRoom(roomId uuid.UUID, client *websocket.Conn) bool {
@@ -37,7 +37,7 @@ func (h *Hub) ConnectToRoom(roomId uuid.UUID, client *websocket.Conn) bool {
 		h.rooms[roomId] = room
 		room.mu.Unlock()
 
-		go room.AddClientAndRun(client)
+		go room.AddConnectionAndRun(client)
 
 		return true
 	}
