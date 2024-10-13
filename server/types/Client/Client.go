@@ -13,8 +13,10 @@ type Client struct {
 	Position messageTypes.PositionPayload
 }
 
-func NewClient() *Client {
-  return &Client{}
+func NewClient(conn *websocket.Conn) *Client {
+  return &Client{
+    Conn: conn,
+  }
 }
 
 // To be called once as goroutine
@@ -33,6 +35,8 @@ func (c *Client) ReadMessages() {
 		if err != nil {
 			fmt.Println("Failed to unmarshal json from message")
 		}
+
+    fmt.Println(receivedPosition)
 
 		// TODO Validate the payload
 

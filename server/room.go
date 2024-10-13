@@ -50,7 +50,7 @@ func (r *Room) Run(tickRate int32) {
 //
 func (r *Room) addClient(conn *websocket.Conn) *client.Client {
 	r.mu.Lock()
-	newClient := client.NewClient()
+	newClient := client.NewClient(conn)
 	r.clients = append(r.clients, newClient)
 	r.mu.Unlock()
 
