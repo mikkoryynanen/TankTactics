@@ -1,8 +1,13 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	client "main/types/Client"
+	world "main/types/World"
+	messageTypes "main/types/payloads"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -13,10 +18,19 @@ type Room struct {
 	IsRunning bool
 	clients   []*client.Client
 	mu        sync.Mutex
+
+	// Replicate of the game word. Everything related to clients is contained in here
+	world *world.World
+	// Stream of messages
+	stream chan []byte
 }
 
 func NewRoom() *Room {
-	return &Room{}
+	return &Room{
+		// Create buffered channel, the channel size is still a question
+		stream: make(chan []byte, 10),
+		world:  world.NewWorld(),
+	}
 }
 
 func (r *Room) AddConnection(conn *websocket.Conn) {
@@ -26,32 +40,55 @@ func (r *Room) AddConnection(conn *websocket.Conn) {
 func (r *Room) AddConnectionAndRun(conn *websocket.Conn) {
 	newClient := r.addClient(conn)
 
-	go newClient.ReadMessages()
+	go newClient.ReadMessages(r.stream)
 }
 
 // Run the world loop with TickRate
 // This method loop through the read messages from the clients
-func (r *Room) Run(tickRate int32) {
+func (r *Room) Run() {
+	tickRateMs := 1000
+
+	fmt.Println("starting room")
+
+	go r.receiveMessages()
+
+	for {
+		r.world.RunOnce()
+
+		// Send the world state back to clients
+		for _, client := range r.clients {
+			// Sending the current client position
+			data, err := json.Marshal(client.Position)
+			if err != nil {
+				fmt.Println("Failed to marshal data")
+			}
+			client.Conn.WriteMessage(websocket.TextMessage, data)
+		}
+
+		fmt.Println("Room tick")
+		time.Sleep(time.Duration(tickRateMs) * time.Millisecond)
+	}
 }
 
-// func (r *Room) TryAddClientValue(clientId uuid.UUID, position messageTypes.Position) {
-// 	for _, client := range r.clients {
-// 		// TODO Make sure we can actually make this move
-// 		// TODO We could use the rollback technique here
-//
-// 		// FOR NEXT TIME WHEN LOOKING AT THIS
-// 		// Since this is TurnBased game, we have to request out wanted postion that we receive from the server
-// 		// Once that position has been confirmed to bee correct, we send it to the client
-//
-// 		client.Position = messageTypes.Position{position.PosX, position.PosY}
-// 	}
-//
-// }
-//
+func (r *Room) receiveMessages() {
+	for block := range r.stream {
+		var baseMsg messageTypes.BaseMessage
+		err := json.Unmarshal(block, &baseMsg)
+		if err != nil {
+			fmt.Println("Failed to unmarshal json from message")
+		}
+
+		r.world.AddMessage(baseMsg.Type, baseMsg.ClientId, block)
+	}
+}
+
 func (r *Room) addClient(conn *websocket.Conn) *client.Client {
 	r.mu.Lock()
 	newClient := client.NewClient(conn)
 	r.clients = append(r.clients, newClient)
+	// TODO Rewrites it every time
+	r.world.Clients = make(map[string]*client.Client)
+	r.world.Clients["client"] = newClient
 	r.mu.Unlock()
 
 	return newClient

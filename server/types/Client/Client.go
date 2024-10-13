@@ -1,7 +1,6 @@
 package client
 
 import (
-	"encoding/json"
 	"fmt"
 	messageTypes "main/types/payloads"
 
@@ -11,32 +10,29 @@ import (
 type Client struct {
 	Conn     *websocket.Conn
 	Position messageTypes.PositionPayload
+	Input    messageTypes.InputPayload
 }
 
 func NewClient(conn *websocket.Conn) *Client {
-  return &Client{
-    Conn: conn,
-  }
+	return &Client{
+		Conn: conn,
+	}
 }
 
 // To be called once as goroutine
-func (c *Client) ReadMessages() {
+func (c *Client) ReadMessages(stream chan []byte) {
 	defer c.Conn.Close()
 
 	for {
+		fmt.Println("reading messages from client...")
+
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
 			fmt.Printf("Failed to read message. err: %v\n", err)
 			return
 		}
 
-		receivedPosition := messageTypes.PositionPayload{}
-		err = json.Unmarshal(msg, &receivedPosition)
-		if err != nil {
-			fmt.Println("Failed to unmarshal json from message")
-		}
-
-    fmt.Println(receivedPosition)
+		stream <- msg
 
 		// TODO Validate the payload
 

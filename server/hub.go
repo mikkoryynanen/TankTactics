@@ -22,6 +22,7 @@ func (h *Hub) AddRoom(client *websocket.Conn) {
 
 	newRoom := NewRoom()
 	newRoom.Id = newRoomId
+	go newRoom.Run()
 
 	h.rooms[newRoomId] = newRoom
 
