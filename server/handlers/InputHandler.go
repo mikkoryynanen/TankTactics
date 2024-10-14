@@ -32,9 +32,18 @@ func (ph *InputHandler) Handle(block []byte, client *client.Client) {
 	// Send the response to client
 	// If we position cannot be moved to, just send the current position or last known position?
 
-	// Nor
+	// Normalize
 	if receivedInput.InputX > 1 {
-		receivedInput.InputX.nor
+		receivedInput.InputX = 1
+	}
+	if receivedInput.InputX < -1 {
+		receivedInput.InputX = -1
+	}
+	if receivedInput.InputY > 1 {
+		receivedInput.InputY = 1
+	}
+	if receivedInput.InputY < -1 {
+		receivedInput.InputY = -1
 	}
 
 	client.Input.InputX = receivedInput.InputX

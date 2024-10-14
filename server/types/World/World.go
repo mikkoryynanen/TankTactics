@@ -30,8 +30,15 @@ func (w *World) RunOnce() {
 			Collision checks
 			Valid move
 		*/
-		client.Position.PosX += int32(client.Input.InputX)
-		client.Position.PosY += int32(client.Input.InputY)
+		
+		posX := client.Position.PosX
+		posX += int32(client.Input.InputX)
+
+		posY := client.Position.PosY
+		posY += int32(client.Input.InputY)
+
+		client.Position.PosX = posX
+		client.Position.PosY = posY
 	}
 }
 
