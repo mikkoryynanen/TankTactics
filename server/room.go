@@ -46,8 +46,6 @@ func (r *Room) AddConnectionAndRun(conn *websocket.Conn) {
 // Run the world loop with TickRate
 // This method loop through the read messages from the clients
 func (r *Room) Run() {
-	tickRateMs := 1000
-
 	fmt.Println("starting room")
 
 	go r.receiveMessages()
@@ -57,28 +55,35 @@ func (r *Room) Run() {
 
 		// Send the world state back to clients
 		for _, client := range r.clients {
-			// Sending the current client position
-			data, err := json.Marshal(client.Position)
+			serverState := &messageTypes.ServerState{
+				PosX: client.Position.PosX,
+				PosY: client.Position.PosY,
+			}
+			data, err := json.Marshal(serverState)
 			if err != nil {
 				fmt.Println("Failed to marshal data")
 			}
 			client.Conn.WriteMessage(websocket.TextMessage, data)
 		}
 
-		fmt.Println("Room tick")
-		time.Sleep(time.Duration(tickRateMs) * time.Millisecond)
+		// fmt.Println("Room tick")
+		time.Sleep(time.Duration(150) * time.Millisecond)
 	}
 }
 
 func (r *Room) receiveMessages() {
-	for block := range r.stream {
-		var baseMsg messageTypes.BaseMessage
-		err := json.Unmarshal(block, &baseMsg)
-		if err != nil {
-			fmt.Println("Failed to unmarshal json from message")
-		}
+	for {
+		for block := range r.stream {
+			var baseMsg messageTypes.BaseMessage
+			err := json.Unmarshal(block, &baseMsg)
+			if err != nil {
+				fmt.Println("Failed to unmarshal json from message")
+			}
 
-		r.world.AddMessage(baseMsg.Type, baseMsg.ClientId, block)
+			fmt.Printf("received message: %v\n", baseMsg)
+
+			r.world.AddMessage(baseMsg.Type, baseMsg.ClientId, block)
+		}
 	}
 }
 

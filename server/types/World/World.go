@@ -1,6 +1,7 @@
 package world
 
 import (
+	"fmt"
 	"main/handlers"
 	client "main/types/Client"
 )
@@ -9,6 +10,7 @@ import (
 World is where where all of the actual client logic is contained, such as Moving or ChatMessages
 */
 type World struct {
+	// TODO Why is there clients here?
 	Clients map[string]*client.Client
 
 	handlers []handlers.Handler
@@ -39,6 +41,8 @@ func (w *World) RunOnce() {
 
 		client.Position.PosX = posX
 		client.Position.PosY = posY
+
+		fmt.Printf("client status %v\n", client)
 	}
 }
 

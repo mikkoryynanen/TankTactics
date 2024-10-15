@@ -24,8 +24,6 @@ func (c *Client) ReadMessages(stream chan []byte) {
 	defer c.Conn.Close()
 
 	for {
-		fmt.Println("reading messages from client...")
-
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
 			fmt.Printf("Failed to read message. err: %v\n", err)

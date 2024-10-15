@@ -21,7 +21,7 @@ func (ph *InputHandler) Handle(block []byte, client *client.Client) {
 	var receivedInput messageTypes.InputPayload
 	err := json.Unmarshal(block, &receivedInput)
 	if err != nil {
-		fmt.Println("Failed to unmarshal json from message")
+		fmt.Println("Failed to unmarshal InputPayload from message")
 	}
 
 	fmt.Println(receivedInput)

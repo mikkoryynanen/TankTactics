@@ -18,3 +18,8 @@ type InputPayload struct {
 	InputX int8 `json:"InputX"`
 	InputY int8 `json:"InputY"`
 }
+
+type ServerState struct {
+	PosX int32 `json:"posx"`
+	PosY int32 `json:"posy"`
+}
