@@ -6,8 +6,10 @@ public class Player : MonoBehaviour
 
     [SerializeField] float movementSpeed = 10;
     [SerializeField] float turnSpeed = 10;
+    [SerializeField] float interpolationSpeed = .1f;
+    [SerializeField] bool serverOnlyMovement = false;
 
-    void FixedUpdate()
+    void Update()
     {
         var horizontal = Input.GetAxisRaw("Horizontal");
         var vertical = Input.GetAxisRaw("Vertical");
@@ -20,16 +22,14 @@ public class Player : MonoBehaviour
             ClientId = "client" // TODO This will be the UUID we receive from the server
         });
 
-        var serverState = serverConnector.GetServerState();
-        if (serverState != null)
+        if (!serverOnlyMovement)
         {
-            transform.position = new Vector2(serverState.posx, serverState.posy);
+            LocalMove(horizontal, vertical);
         }
-
-        // Move(horizontal, vertical);
+        CorrectPosition();
     }
 
-    void Move(float horizontal, float vertical)
+    void LocalMove(float horizontal, float vertical)
     {
         transform.position = new Vector2(
             transform.position.x + horizontal * Time.deltaTime * movementSpeed,
@@ -41,5 +41,15 @@ public class Player : MonoBehaviour
          0, 0,
              turnInputAxis * Time.deltaTime * turnSpeed
         ));
+    }
+
+    void CorrectPosition()
+    {
+        var serverState = serverConnector.GetServerState();
+        if (serverState != null)
+        {
+            var newPosition = new Vector2(serverState.posx, serverState.posy);
+            transform.position = Vector3.Lerp(transform.position, newPosition, interpolationSpeed);
+        }
     }
 }

@@ -10,8 +10,8 @@ type MessagePayload struct {
 }
 
 type PositionPayload struct {
-	PosX int32 `json:"posx"`
-	PosY int32 `json:"posy"`
+	PosX float32 `json:"posx"`
+	PosY float32 `json:"posy"`
 }
 
 type InputPayload struct {
@@ -20,6 +20,10 @@ type InputPayload struct {
 }
 
 type ServerState struct {
-	PosX int32 `json:"posx"`
-	PosY int32 `json:"posy"`
+	PosX float32 `json:"posx"`
+	PosY float32 `json:"posy"`
+}
+
+type PlayerMetadata struct {
+	ClientId string `json:"ClientId"`
 }

@@ -14,10 +14,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	TickRate      = 60                           // Target tick rate in Hz
+	TickDuration  = time.Duration(1000/TickRate) * time.Millisecond // ~16.67 ms per tick
+)
+
 type Room struct {
 	Id        uuid.UUID
 	IsRunning bool
-	clients   []*client.Client
 	mu        sync.Mutex
 
 	// Replicate of the game word. Everything related to clients is contained in here
@@ -41,7 +45,6 @@ func (r *Room) AddConnection(conn *websocket.Conn) {
 func (r *Room) AddConnectionAndRun(conn *websocket.Conn) {
 	newClient := r.addClient(conn)
 
-
 	go newClient.ReadMessages(r.stream)
 }
 
@@ -53,13 +56,16 @@ func (r *Room) Run() {
 	go r.receiveMessages()
 
 	for {
+		startTime := time.Now()
+
 		// Cleanup disconnected clients
-		utils.RemoveDisconnectedClients(utils.GetMapValues(r.world.Clients))
+		r.world.Clients = utils.RemoveDisconnectedClients(utils.GetMapValues(r.world.Clients))
 
 		r.world.RunOnce()
 
+		// TODO Consider moving this to world
 		// Send the world state back to clients
-		for _, client := range r.clients {
+		for _, client := range r.world.Clients {
 			serverState := &messageTypes.ServerState{
 				PosX: client.Position.PosX,
 				PosY: client.Position.PosY,
@@ -71,8 +77,14 @@ func (r *Room) Run() {
 			client.Conn.WriteMessage(websocket.TextMessage, data)
 		}
 
-		// fmt.Println("Room tick")
-		time.Sleep(time.Duration(150) * time.Millisecond)
+		elapsedTime := time.Since(startTime)
+		sleepDuration := TickDuration - elapsedTime
+		fmt.Printf("sleeping for %v\n", sleepDuration)
+		if sleepDuration > 0 {
+			time.Sleep(time.Duration(sleepDuration))
+		} else {
+			fmt.Println("skipping sleep, frame took too long to render")
+		}
 	}
 }
 
@@ -95,11 +107,19 @@ func (r *Room) receiveMessages() {
 func (r *Room) addClient(conn *websocket.Conn) *client.Client {
 	r.mu.Lock()
 	newClient := client.NewClient(conn)
-	r.clients = append(r.clients, newClient)
-	// TODO Rewrites it every time
-	r.world.Clients = make(map[string]*client.Client)
-	r.world.Clients["client"] = newClient
+	r.world.Clients[newClient.Id] = newClient
 	r.mu.Unlock()
+
+	// TODO These write messages could be moved to somewhere unified so we do not call them willy-nilly
+	// Send player their generated metadata
+	playerMetadata := &messageTypes.PlayerMetadata{
+		ClientId: newClient.Id,
+	}
+	data, err := json.Marshal(playerMetadata)
+	if err != nil {
+		fmt.Println("Failed to marshal data")
+	}
+	conn.WriteMessage(websocket.TextMessage, data)
 
 	return newClient
 }

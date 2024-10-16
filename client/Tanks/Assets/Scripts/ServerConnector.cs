@@ -4,6 +4,8 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ServerConnector : MonoBehaviour
@@ -107,11 +109,16 @@ public class ServerConnector : MonoBehaviour
             }
 
             var rawMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            Debug.Log($"rawMessage: {rawMessage}");
-            var serverState = JsonUtility.FromJson<ServerState>(rawMessage);
-            Debug.Log($"room state x: {serverState.posx} y: {serverState.posy}");
+            try
+            {
+                var baseServerState = JsonUtility.FromJson<BaseServerState>(rawMessage);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
 
-            _serverStateQueue.Enqueue(serverState);
+            // _serverStateQueue.Enqueue(serverState);
         }
 
         Debug.Log("Websocket connection closed");

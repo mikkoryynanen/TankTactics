@@ -4,10 +4,12 @@ import (
 	"log"
 	messageTypes "main/types/payloads"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
 type Client struct {
+	Id 			string
 	Conn        *websocket.Conn
 	Position    messageTypes.PositionPayload
 	Input       messageTypes.InputPayload
@@ -16,6 +18,7 @@ type Client struct {
 
 func NewClient(conn *websocket.Conn) *Client {
 	newClient := &Client{
+		Id: uuid.NewString(),
 		Conn:        conn,
 		IsConnected: true,
 	}

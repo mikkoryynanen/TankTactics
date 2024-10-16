@@ -5,4 +5,5 @@ public class ClientState
     public string ClientId;
     public sbyte InputX;
     public sbyte InputY;
+    // public long timestamp;
 }

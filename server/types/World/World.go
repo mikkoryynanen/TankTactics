@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"main/handlers"
 	client "main/types/Client"
+	"time"
 )
 
 /*
@@ -14,6 +15,9 @@ type World struct {
 	Clients map[string]*client.Client
 
 	handlers []handlers.Handler
+
+	// Time
+	lastFrameTime time.Time
 }
 
 func NewWorld() *World {
@@ -21,23 +25,29 @@ func NewWorld() *World {
 	var inputHandler handlers.InputHandler
 
 	return &World{
+		Clients: make(map[string]*client.Client),
 		handlers: []handlers.Handler{0: &inputHandler},
 	}
 }
 
 // Run the world simulation loop once. Should be called from room loop
 func (w *World) RunOnce() {
+	w.lastFrameTime = time.Now()
+
 	for _, client := range w.Clients {
 		/* TODO
-			Collision checks
-			Valid move
+		Collision checks
+		Valid move
 		*/
-		
+
+		currentTime := time.Now()
+		deltaTime := currentTime.Sub(w.lastFrameTime).Seconds()
+
 		posX := client.Position.PosX
-		posX += int32(client.Input.InputX)
+		posX += float32(client.Input.InputX) * 200000 * float32(deltaTime)
 
 		posY := client.Position.PosY
-		posY += int32(client.Input.InputY)
+		posY += float32(client.Input.InputY) * 200000 * float32(deltaTime)
 
 		client.Position.PosX = posX
 		client.Position.PosY = posY
