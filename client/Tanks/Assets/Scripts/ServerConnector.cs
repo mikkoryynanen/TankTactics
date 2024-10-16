@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Net.WebSockets;
-using System.Resources;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,22 +11,20 @@ public class ServerConnector : MonoBehaviour
     ConcurrentQueue<ClientState> _clientStateQueue = new();
     ConcurrentQueue<ServerState> _serverStateQueue = new();
 
-    bool _isConnected = false;
+    private ClientWebSocket _ws;
 
     async void Start()
     {
         Debug.Log("Starting server connection...");
 
-        var ws = new ClientWebSocket();
+        _ws = new ClientWebSocket();
         try
         {
-            await ws.ConnectAsync(new Uri("ws://localhost:8080/c"), CancellationToken.None);
+            await _ws.ConnectAsync(new Uri("ws://localhost:8080/c"), CancellationToken.None);
             Debug.Log("Connected to server");
 
-            _isConnected = true;
-
-            var readTask = Task.Run(() => ReadMessages(ws));
-            var sendTask = Task.Run(() => SendClientState(ws));
+            var readTask = Task.Run(() => ReadMessages(_ws));
+            var sendTask = Task.Run(() => SendClientState(_ws));
             await Task.WhenAll(readTask, sendTask);
         }
         catch (System.Exception e)
@@ -36,8 +32,27 @@ public class ServerConnector : MonoBehaviour
             Debug.LogError($"Server connection failed. {e.Message}");
         }
 
-        await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
-        Debug.Log("Connection to server closed");
+        await OnDisconnectAsync();
+    }
+
+    private async void OnApplicationQuit()
+    {
+        await OnDisconnectAsync();
+    }
+
+    // Called when the GameObject is destroyed (e.g., if manually removed or scene changes)
+    private async void OnDestroy()
+    {
+        await OnDisconnectAsync();
+    }
+
+    private async Task OnDisconnectAsync()
+    {
+        if (_ws != null && _ws.State == WebSocketState.Open)
+        {
+            await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+            Debug.Log("Connection to server closed");
+        }
     }
 
     public void AddClientState(ClientState state)
@@ -62,7 +77,7 @@ public class ServerConnector : MonoBehaviour
 
     async Task SendClientState(ClientWebSocket ws)
     {
-        while (_isConnected)
+        while (ws.State == WebSocketState.Open)
         {
             while (_clientStateQueue.TryDequeue(out var state))
             {
@@ -75,12 +90,14 @@ public class ServerConnector : MonoBehaviour
                     CancellationToken.None);
             }
         }
+
+        Debug.Log("Websocket connection closed");
     }
 
     async Task ReadMessages(ClientWebSocket ws)
     {
         var buffer = new byte[1024];
-        while (true)
+        while (ws.State == WebSocketState.Open || ws.State == WebSocketState.CloseReceived)
         {
             var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
@@ -96,5 +113,7 @@ public class ServerConnector : MonoBehaviour
 
             _serverStateQueue.Enqueue(serverState);
         }
+
+        Debug.Log("Websocket connection closed");
     }
 }
