@@ -1,0 +1,23 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Publish Docker image"]
+    types:
+       completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update docker compose
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd ~/apps/ll-backend
+            docker-compose up -d
+
