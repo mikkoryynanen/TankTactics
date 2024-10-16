@@ -1,51 +1,47 @@
 package client
 
 import (
-	"fmt"
+	"log"
 	messageTypes "main/types/payloads"
 
 	"github.com/gorilla/websocket"
 )
 
 type Client struct {
-	Conn     *websocket.Conn
-	Position messageTypes.PositionPayload
-	Input    messageTypes.InputPayload
+	Conn        *websocket.Conn
+	Position    messageTypes.PositionPayload
+	Input       messageTypes.InputPayload
+	IsConnected bool
 }
 
 func NewClient(conn *websocket.Conn) *Client {
-	return &Client{
-		Conn: conn,
+	newClient := &Client{
+		Conn:        conn,
+		IsConnected: true,
 	}
+	conn.SetCloseHandler(func(code int, text string) error {
+		newClient.IsConnected = false
+		return nil
+	})
+
+	return newClient
 }
 
 // To be called once as goroutine
 func (c *Client) ReadMessages(stream chan []byte) {
-	defer c.Conn.Close()
 
 	for {
+		defer c.Conn.Close()
+
 		_, msg, err := c.Conn.ReadMessage()
 		if err != nil {
-			fmt.Printf("Failed to read message. err: %v\n", err)
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+				log.Println("Normal closure:", err)
+				c.IsConnected = false
+			}
 			return
 		}
 
 		stream <- msg
-
-		// TODO Validate the payload
-
-		// fmt.Printf("Received message. (roomId/addr:message) %v/%v: %v\n", c.Conn.NetConn().LocalAddr().String(), r.Id, receivedPosition)
-
-		// TODO
-		// - Handle the message logic, what do we do when we get a message package
-		// r.world.TryAddClientValue(clien.id, receivedPosition)
-		// - Send back the computed response to that message
-
-		// TODO Response is written back once we've calculated the actual position inside world
-		// 	err = client.WriteMessage(websocket.TextMessage, msg)
-		// 	i
-		// f err != nil {
-		// 		fmt.Println("Write message failed")
-		// 	}
 	}
 }

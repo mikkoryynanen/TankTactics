@@ -6,6 +6,7 @@ import (
 	client "main/types/Client"
 	world "main/types/World"
 	messageTypes "main/types/payloads"
+	"main/utils"
 	"sync"
 	"time"
 
@@ -40,6 +41,7 @@ func (r *Room) AddConnection(conn *websocket.Conn) {
 func (r *Room) AddConnectionAndRun(conn *websocket.Conn) {
 	newClient := r.addClient(conn)
 
+
 	go newClient.ReadMessages(r.stream)
 }
 
@@ -51,6 +53,9 @@ func (r *Room) Run() {
 	go r.receiveMessages()
 
 	for {
+		// Cleanup disconnected clients
+		utils.RemoveDisconnectedClients(utils.GetMapValues(r.world.Clients))
+
 		r.world.RunOnce()
 
 		// Send the world state back to clients
