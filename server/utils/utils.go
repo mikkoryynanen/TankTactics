@@ -1,8 +1,9 @@
 package utils
 
 import (
+	"encoding/json"
+	"fmt"
 	client "main/types/Client"
-	"math"
 )
 
 func RemoveDisconnectedClients(clients []*client.Client) map[string]*client.Client {
@@ -22,19 +23,28 @@ func RemoveDisconnectedClients(clients []*client.Client) map[string]*client.Clie
 }
 
 func GetMapValues[K comparable, V any](m map[K]V) []V {
-	var values []V
-	for _, value := range m {
-		values = append(values, value)
-	}
-	return values
+    var values []V
+    for _, value := range m {
+        values = append(values, value)
+    }
+    return values
 }
 
-func RoundFloatTo(value float64) float64 {
-	// Check if the value is less than 0.01
-	// if math.Abs(value) < 0.01 {
-	// 	return value // Return the original value if it's less than 0.01
-	// }
+func GetBytes[T any](data T) ([]byte, error) {
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("Failed to unmarshal ")
+		return nil, err
+	}
+	return bytes, nil
+}
 
-	// Multiply by 100, round, then divide by 100 to get two decimal places
-	return math.Round(value*100) / 100
+func GetType[T any](bytes []byte) (T, error) {
+	var t T
+	err := json.Unmarshal(bytes, &t)
+	if err != nil {
+		fmt.Println("Failed to unmarshal ")
+		return t, err
+	}
+	return t, nil
 }

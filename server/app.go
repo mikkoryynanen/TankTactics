@@ -6,17 +6,25 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
 type App struct {
 	hub      Hub
 	upgrader websocket.Upgrader
+
+	database *Database
+
+	userHandler *UserHandler
 }
 
 func NewApp() *App {
+	db := NewDatabase()
 	return &App{
 		hub: *NewHub(),
+		database: db,
+		userHandler: NewUserHandler(db),
 	}
 }
 
@@ -51,7 +59,6 @@ func (a *App) handleRoomConnection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Printf("isConnected? %v to room %v\n", isConnected, roomId)
-
 }
 
 func (a App) upgradeConnection(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
@@ -64,8 +71,11 @@ func (a App) upgradeConnection(w http.ResponseWriter, r *http.Request) (*websock
 }
 
 func (a App) Run() {
-	http.HandleFunc("/c", a.handleConnection)
-	http.HandleFunc("/c/room", a.handleRoomConnection)
+	r := mux.NewRouter()
+	r.HandleFunc("/c", a.handleConnection)
+	r.HandleFunc("/c/room", a.handleRoomConnection)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	r.HandleFunc("/user/create", a.userHandler.CreateUserHandler).Methods("POST")
+
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
