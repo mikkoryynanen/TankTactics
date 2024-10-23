@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	TickRate      = 60                           // Target tick rate in Hz
-	TickDuration  = time.Duration(1000/TickRate) * time.Millisecond // ~16.67 ms per tick
+	TickRate     = 60                                              // Target tick rate in Hz
+	TickDuration = time.Duration(1000/TickRate) * time.Millisecond // ~16.67 ms per tick
 )
 
 type Room struct {
@@ -38,10 +38,6 @@ func NewRoom() *Room {
 	}
 }
 
-func (r *Room) AddConnection(conn *websocket.Conn) {
-	r.addClient(conn)
-}
-
 func (r *Room) AddConnectionAndRun(conn *websocket.Conn) {
 	newClient := r.addClient(conn)
 
@@ -59,9 +55,10 @@ func (r *Room) Run() {
 		startTime := time.Now()
 
 		// Cleanup disconnected clients
+		// TODO This could be done with an interval if deemed to take too long
 		r.world.Clients = utils.RemoveDisconnectedClients(utils.GetMapValues(r.world.Clients))
 
-		r.world.RunOnce()
+		r.world.SimulateOnce()
 
 		// TODO Consider moving this to world
 		// Send the world state back to clients

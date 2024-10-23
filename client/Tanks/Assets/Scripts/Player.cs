@@ -11,6 +11,8 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        if(GlobalOptions.PlayerClientId == "") return;
+
         var horizontal = Input.GetAxisRaw("Horizontal");
         var vertical = Input.GetAxisRaw("Vertical");
 
@@ -19,7 +21,7 @@ public class Player : MonoBehaviour
             InputX = (sbyte)horizontal,
             InputY = (sbyte)vertical,
             Type = 0,   // type of the state being sent
-            ClientId = "client" // TODO This will be the UUID we receive from the server
+            ClientId = GlobalOptions.PlayerClientId
         });
 
         if (!serverOnlyMovement)

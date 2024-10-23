@@ -60,13 +60,14 @@ public class ServerConnector : MonoBehaviour
     public void AddClientState(ClientState state)
     {
         // Only add non identical messages to queue
-        if (_clientStateQueue.TryPeek(out var peekState))
-        {
-            if (peekState.InputX == state.InputX && peekState.InputY == state.InputY)
-            {
-                return;
-            }
-        }
+        // if (_clientStateQueue.TryPeek(out var peekState))
+        // {
+        //     if (peekState.InputX == state.InputX && peekState.InputY == state.InputY)
+        //     {
+        //         Debug.Log("Identical client state. Do not send to server");
+        //         return;
+        //     }
+        // }
         _clientStateQueue.Enqueue(state);
         // var json = JsonUtility.ToJson(state);
         // Debug.Log($"Adding state: {json}");
@@ -98,7 +99,9 @@ public class ServerConnector : MonoBehaviour
 
     async Task ReadMessages(ClientWebSocket ws)
     {
+        bool metadataReceived = false;
         var buffer = new byte[1024];
+
         while (ws.State == WebSocketState.Open || ws.State == WebSocketState.CloseReceived)
         {
             var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -111,14 +114,23 @@ public class ServerConnector : MonoBehaviour
             var rawMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
             try
             {
-                var baseServerState = JsonUtility.FromJson<BaseServerState>(rawMessage);
+                if (!metadataReceived)
+                {
+                    var playerMetadata = JsonUtility.FromJson<PlayerMetadata>(rawMessage);
+                    Debug.Log($"Received clientId {playerMetadata.ClientId}");
+                    GlobalOptions.PlayerClientId = playerMetadata.ClientId;
+                    metadataReceived = true;
+                }
+                else
+                {
+                    var serverState = JsonUtility.FromJson<ServerState>(rawMessage);
+                    _serverStateQueue.Enqueue(serverState);
+                }
             }
-            catch (System.Exception)
+            catch (Exception e)
             {
-                throw;
+                Debug.LogError($"Failed to parse message {e.Message}");
             }
-
-            // _serverStateQueue.Enqueue(serverState);
         }
 
         Debug.Log("Websocket connection closed");

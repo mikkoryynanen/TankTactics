@@ -2,9 +2,9 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	// "fmt"
 	"log"
-	"os"
+	// "os"
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
@@ -15,24 +15,26 @@ type Database struct {
 }
 
 func NewDatabase() *Database {
-	connStr := os.Getenv("DATABASE_URL")
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Panic(err)
-	}
-	// defer db.Close()
+	return nil
 
-	if err = db.Ping(); err != nil {
-		log.Panic(err)
-	}
+	// connStr := os.Getenv("DATABASE_URL")
+	// db, err := sql.Open("postgres", connStr)
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
+	// // defer db.Close()
 
-	createTable(db)
+	// if err = db.Ping(); err != nil {
+	// 	log.Panic(err)
+	// }
 
-	fmt.Printf("Connected to database at: %v\n", connStr)
+	// createTable(db)
 
-	return &Database{
-		db: db,
-	}
+	// fmt.Printf("Connected to database at: %v\n", connStr)
+
+	// return &Database{
+	// 	db: db,
+	// }
 }
 
 func (db *Database) CreateUser(username string) (uuid.UUID, error) {

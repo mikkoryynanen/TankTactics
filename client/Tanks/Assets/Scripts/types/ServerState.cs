@@ -6,8 +6,7 @@ public class ServerState
 }
 
 [System.Serializable]
-public class BaseServerState
+public class PlayerMetadata
 {
-    public int MessageType;
     public string ClientId;
 }

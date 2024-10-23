@@ -25,13 +25,13 @@ func NewWorld() *World {
 	var inputHandler handlers.InputHandler
 
 	return &World{
-		Clients: make(map[string]*client.Client),
+		Clients:  make(map[string]*client.Client),
 		handlers: []handlers.Handler{0: &inputHandler},
 	}
 }
 
 // Run the world simulation loop once. Should be called from room loop
-func (w *World) RunOnce() {
+func (w *World) SimulateOnce() {
 	w.lastFrameTime = time.Now()
 
 	for _, client := range w.Clients {

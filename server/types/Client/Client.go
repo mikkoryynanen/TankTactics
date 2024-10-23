@@ -32,7 +32,6 @@ func NewClient(conn *websocket.Conn) *Client {
 
 // To be called once as goroutine
 func (c *Client) ReadMessages(stream chan []byte) {
-
 	for {
 		defer c.Conn.Close()
 
