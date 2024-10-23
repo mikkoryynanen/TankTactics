@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: users
+      POSTGRES_USER: client
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "5432:5432"  # Expose PostgreSQL to the host machine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persist data locally
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U client"]
+      interval: 10s
+      retries: 5
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+    driver: bridge

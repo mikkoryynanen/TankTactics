@@ -75,7 +75,9 @@ func (a App) Run() {
 	r.HandleFunc("/c", a.handleConnection)
 	r.HandleFunc("/c/room", a.handleRoomConnection)
 
-	r.HandleFunc("/user/create", a.userHandler.CreateUserHandler).Methods("POST")
+	// TODO Disabled for now,continuing later
+	// r.HandleFunc("/user", a.userHandler.CreateUserHandler).Methods("POST")
+	// r.HandleFunc("/user/{id}", a.userHandler.GetUserHandler).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

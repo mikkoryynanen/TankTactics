@@ -14,14 +14,14 @@ type CreateNewUserPayload struct {
 }
 
 type User struct {
-	Id 			string
+	Id 			uuid.UUID
 	Username 	string
-	CurrentRoom	*Room
+	// CurrentRoom	*Room
 }
 
-func NewUser(username string) *User{
+func NewUser(userId uuid.UUID, username string) *User{
 	return &User{
-		Id: uuid.NewString(),
+		Id: userId,
 		Username: username,
 	}
 }
@@ -59,10 +59,40 @@ func (uh * UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user := NewUser(createUserBody.Username)
-	// TODO Save user to database
-	uh.database.CreateUser()
+	// Check that the user does not already exist
+	userId, err := uh.database.CreateUser(createUserBody.Username)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	user := NewUser(userId, createUserBody.Username)
 
 	bytes, _ := utils.GetBytes(user)
 	w.Write(bytes)
+}
+
+func (uh * UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Getting user with id")
+
+	// body, err := io.ReadAll(r.Body)
+	// if len(body) <= 0 || err != nil {
+	// 	log.Print(err)
+	// 	http.Error(w, "Could not read request body", http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// getUserBody, err := utils.GetType[GetUserPayload](body)
+	// if err != nil {
+	// 	log.Print(err)
+	// 	http.Error(w, "Could not get type from reqest body", http.StatusInternalServerError)
+	// 	return
+	// }
+
+	requestUserId := r.URL.Query().Get("userId")
+	user, err := uh.database.GetUser(requestUserId)
+	if err != nil {
+		w.Write([]byte("Could not find user"))
+	}
+
+	w.Write(user.Id[:])
 }
