@@ -1,8 +1,7 @@
-package client
+package types
 
 import (
 	"log"
-	messageTypes "main/types/payloads"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -11,8 +10,8 @@ import (
 type Client struct {
 	Id 			string
 	Conn        *websocket.Conn
-	Position    messageTypes.PositionPayload
-	Input       messageTypes.InputPayload
+	Position    PositionPayload
+	Input       InputPayload
 	IsConnected bool
 }
 

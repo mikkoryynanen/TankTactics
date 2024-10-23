@@ -1,9 +1,9 @@
-package world
+package app
 
 import (
 	"fmt"
-	"main/handlers"
-	client "main/types/Client"
+	"main/cmd/handlers"
+	"main/cmd/types"
 	"time"
 )
 
@@ -12,7 +12,7 @@ World is where where all of the actual client logic is contained, such as Moving
 */
 type World struct {
 	// TODO Why is there clients here?
-	Clients map[string]*client.Client
+	Clients map[string]*types.Client
 
 	handlers []handlers.Handler
 
@@ -25,7 +25,7 @@ func NewWorld() *World {
 	var inputHandler handlers.InputHandler
 
 	return &World{
-		Clients:  make(map[string]*client.Client),
+		Clients:  make(map[string]*types.Client),
 		handlers: []handlers.Handler{0: &inputHandler},
 	}
 }
@@ -59,5 +59,7 @@ func (w *World) SimulateOnce() {
 func (w *World) AddMessage(messageType int32, clientId string, block []byte) {
 	if client, exists := w.Clients[clientId]; exists {
 		w.handlers[messageType].Handle(block, client)
+	} else {
+		fmt.Printf("Did not find client with %v\n", clientId)
 	}
 }

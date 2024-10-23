@@ -1,8 +1,10 @@
-package main
+package app
 
 import (
 	"fmt"
 	"log"
+	"main/cmd/database"
+	"main/cmd/routes"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -14,17 +16,17 @@ type App struct {
 	hub      Hub
 	upgrader websocket.Upgrader
 
-	database *Database
+	database *database.Database
 
-	userHandler *UserHandler
+	userHandler *routes.UserHandler
 }
 
 func NewApp() *App {
-	db := NewDatabase()
+	db := database.NewDatabase()
 	return &App{
-		hub: *NewHub(),
-		database: db,
-		userHandler: NewUserHandler(db),
+		hub:         *NewHub(),
+		database:    db,
+		userHandler: routes.NewUserHandler(db),
 	}
 }
 
@@ -75,9 +77,8 @@ func (a App) Run() {
 	r.HandleFunc("/c", a.handleConnection)
 	r.HandleFunc("/c/room", a.handleRoomConnection)
 
-	// TODO Disabled for now,continuing later
-	// r.HandleFunc("/user", a.userHandler.CreateUserHandler).Methods("POST")
-	// r.HandleFunc("/user/{id}", a.userHandler.GetUserHandler).Methods("GET")
+	// TODO users disabled for now
+	// r.PathPrefix("/user").Handler(routes.UserRouter())
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

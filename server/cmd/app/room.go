@@ -1,12 +1,10 @@
-package main
+package app
 
 import (
 	"encoding/json"
 	"fmt"
-	client "main/types/Client"
-	world "main/types/World"
-	messageTypes "main/types/payloads"
-	"main/utils"
+	"main/cmd/types"
+	"main/cmd/utils"
 	"sync"
 	"time"
 
@@ -25,7 +23,7 @@ type Room struct {
 	mu        sync.Mutex
 
 	// Replicate of the game word. Everything related to clients is contained in here
-	world *world.World
+	world *World
 	// Stream of messages
 	stream chan []byte
 }
@@ -34,7 +32,7 @@ func NewRoom() *Room {
 	return &Room{
 		// Create buffered channel, the channel size is still a question
 		stream: make(chan []byte, 10),
-		world:  world.NewWorld(),
+		world:  NewWorld(),
 	}
 }
 
@@ -63,7 +61,10 @@ func (r *Room) Run() {
 		// TODO Consider moving this to world
 		// Send the world state back to clients
 		for _, client := range r.world.Clients {
-			serverState := &messageTypes.ServerState{
+			serverState := &types.ServerState{
+				BaseMessage: types.BaseMessage{
+					Type: 1,
+				},
 				PosX: client.Position.PosX,
 				PosY: client.Position.PosY,
 			}
@@ -88,7 +89,7 @@ func (r *Room) Run() {
 func (r *Room) receiveMessages() {
 	for {
 		for block := range r.stream {
-			var baseMsg messageTypes.BaseMessage
+			var baseMsg types.BaseMessage
 			err := json.Unmarshal(block, &baseMsg)
 			if err != nil {
 				fmt.Println("Failed to unmarshal json from message")
@@ -101,16 +102,19 @@ func (r *Room) receiveMessages() {
 	}
 }
 
-func (r *Room) addClient(conn *websocket.Conn) *client.Client {
+func (r *Room) addClient(conn *websocket.Conn) *types.Client {
 	r.mu.Lock()
-	newClient := client.NewClient(conn)
+	newClient := types.NewClient(conn)
 	r.world.Clients[newClient.Id] = newClient
 	r.mu.Unlock()
 
 	// TODO These write messages could be moved to somewhere unified so we do not call them willy-nilly
 	// Send player their generated metadata
-	playerMetadata := &messageTypes.PlayerMetadata{
-		ClientId: newClient.Id,
+	playerMetadata := &types.PlayerMetadata{
+		BaseMessage: types.BaseMessage{
+			Type:     0,
+			ClientId: newClient.Id,
+		},
 	}
 	data, err := json.Marshal(playerMetadata)
 	if err != nil {

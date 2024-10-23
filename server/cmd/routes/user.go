@@ -1,42 +1,51 @@
-package main
+package routes
 
 import (
 	"io"
 	"log"
-	"main/utils"
+	"main/cmd/database"
+	"main/cmd/types"
+	"main/cmd/utils"
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type CreateNewUserPayload struct {
 	Username string
 }
 
-type User struct {
-	Id 			uuid.UUID
-	Username 	string
-	// CurrentRoom	*Room
+func UserRouter() *mux.Router {
+	// Inspiration from https://stackoverflow.com/a/52473957
+	router := mux.NewRouter()
+	// TODO No need for instance, can just use funcs?
+	uh := NewUserHandler(nil)
+
+	router.HandleFunc("/user", uh.CreateUserHandler).Methods(http.MethodPost)
+	router.HandleFunc("/user/{id}", uh.GetUserHandler).Methods(http.MethodGet)
+
+	return router
 }
 
-func NewUser(userId uuid.UUID, username string) *User{
-	return &User{
-		Id: userId,
+func NewUser(userId uuid.UUID, username string) *types.User {
+	return &types.User{
+		Id:       userId,
 		Username: username,
 	}
 }
 
 type UserHandler struct {
-	database *Database
+	database *database.Database
 }
 
-func NewUserHandler(db *Database) *UserHandler {
+func NewUserHandler(db *database.Database) *UserHandler {
 	return &UserHandler{
 		database: db,
 	}
 }
 
-func (uh * UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+func (uh *UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Creating user...")
 
 	body, err := io.ReadAll(r.Body)
@@ -71,7 +80,7 @@ func (uh * UserHandler) CreateUserHandler(w http.ResponseWriter, r *http.Request
 	w.Write(bytes)
 }
 
-func (uh * UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+func (uh *UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Getting user with id")
 
 	// body, err := io.ReadAll(r.Body)
@@ -88,11 +97,11 @@ func (uh * UserHandler) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	requestUserId := r.URL.Query().Get("userId")
-	user, err := uh.database.GetUser(requestUserId)
-	if err != nil {
-		w.Write([]byte("Could not find user"))
-	}
+	// requestUserId := r.URL.Query().Get("userId")
+	// user, err := uh.database.GetUser(requestUserId)
+	// if err != nil {
+	// 	w.Write([]byte("Could not find user"))
+	// }
 
-	w.Write(user.Id[:])
+	// w.Write(user.Id[:])
 }

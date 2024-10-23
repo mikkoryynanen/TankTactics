@@ -3,22 +3,21 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	client "main/types/Client"
-	messageTypes "main/types/payloads"
+	"main/cmd/types"
 )
 
 type Handler interface {
-	Handle(block []byte, client *client.Client)
+	Handle(block []byte, client *types.Client)
 }
 
 type InputHandler struct {
 }
 
-func (ph *InputHandler) Handle(block []byte, client *client.Client) {
+func (ph *InputHandler) Handle(block []byte, client *types.Client) {
 	// Since this is real-time, we only receive inputs from the player
 	// Once correct position is calculated with the given input, we send that the the client
 
-	var receivedInput messageTypes.InputPayload
+	var receivedInput types.InputPayload
 	err := json.Unmarshal(block, &receivedInput)
 	if err != nil {
 		fmt.Println("Failed to unmarshal InputPayload from message")

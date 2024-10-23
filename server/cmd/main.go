@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"main/cmd/app"
 
 	"github.com/joho/godotenv"
 )
@@ -9,7 +10,7 @@ import (
 func main() {
 	godotenv.Load()
 	fmt.Println("starting server..")
-	app := NewApp()
+	app := app.NewApp()
 	// var app App
 	app.Run()
 }

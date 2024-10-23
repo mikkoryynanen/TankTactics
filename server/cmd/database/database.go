@@ -1,7 +1,9 @@
-package main
+package database
 
 import (
 	"database/sql"
+	"main/cmd/types"
+
 	// "fmt"
 	"log"
 	// "os"
@@ -51,10 +53,10 @@ func (db *Database) CreateUser(username string) (uuid.UUID, error) {
 	return pk, nil
 }
 
-func (db *Database) GetUser(id string) (*User, error) {
+func (db *Database) GetUser(id string) (*types.User, error) {
 	query := `SELECT * FROM "user" WHERE id = $1 LIMIT 1`
 
-	var user User
+	var user types.User
 	err := db.db.QueryRow(query, id).Scan(&user)
 	if err != nil {
 		log.Fatal(err)

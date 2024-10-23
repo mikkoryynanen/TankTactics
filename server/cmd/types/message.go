@@ -1,4 +1,4 @@
-package payloads
+package types
 
 type BaseMessage struct {
 	Type int32 `json:"type"`
@@ -20,10 +20,12 @@ type InputPayload struct {
 }
 
 type ServerState struct {
+	BaseMessage
+
 	PosX float32 `json:"posx"`
 	PosY float32 `json:"posy"`
 }
 
 type PlayerMetadata struct {
-	ClientId string `json:"ClientId"`
+	BaseMessage
 }

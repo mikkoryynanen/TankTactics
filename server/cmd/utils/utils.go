@@ -3,18 +3,18 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	client "main/types/Client"
+	"main/cmd/types"
 )
 
-func RemoveDisconnectedClients(clients []*client.Client) map[string]*client.Client {
-	var filteredClients []*client.Client
+func RemoveDisconnectedClients(clients []*types.Client) map[string]*types.Client {
+	var filteredClients []*types.Client
 	for _, client := range clients {
 		if client.IsConnected {
 			filteredClients = append(filteredClients, client)
 		}
 	}
 
-	clientMap := make(map[string]*client.Client)
+	clientMap := make(map[string]*types.Client)
 	for _, client := range filteredClients {
 		clientMap[client.Id] = client
 	}
