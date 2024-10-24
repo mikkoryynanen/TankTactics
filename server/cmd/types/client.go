@@ -8,9 +8,9 @@ import (
 )
 
 type Client struct {
-	Id 			string
+	Id          string
 	Conn        *websocket.Conn
-	Position    PositionPayload
+	Object      LevelObject
 	Input       InputPayload
 	IsConnected bool
 }
@@ -18,6 +18,12 @@ type Client struct {
 func NewClient(conn *websocket.Conn) *Client {
 	newClient := &Client{
 		Id: uuid.NewString(),
+		Object: LevelObject{
+			Name: "Player",
+			Size: LevelObjectVector{
+				X: 1, Y: 1,
+			},
+		},
 		Conn:        conn,
 		IsConnected: true,
 	}

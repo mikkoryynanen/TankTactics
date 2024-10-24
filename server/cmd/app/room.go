@@ -65,8 +65,8 @@ func (r *Room) Run() {
 				BaseMessage: types.BaseMessage{
 					Type: 1,
 				},
-				PosX: client.Position.PosX,
-				PosY: client.Position.PosY,
+				PosX: client.Object.Position.X,
+				PosY: client.Object.Position.Y,
 			}
 			data, err := json.Marshal(serverState)
 			if err != nil {

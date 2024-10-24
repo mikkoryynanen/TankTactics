@@ -1,9 +1,11 @@
 package utils
 
 import (
-	"encoding/json"
 	"fmt"
-	"main/cmd/types"
+    "os"
+    "path/filepath"
+	"encoding/json"
+	"main/cmd/types" 
 )
 
 func RemoveDisconnectedClients(clients []*types.Client) map[string]*types.Client {
@@ -47,4 +49,22 @@ func GetType[T any](bytes []byte) (T, error) {
 		return t, err
 	}
 	return t, nil
+}
+
+func FindProjectRoot() (string, error) {
+    cwd, err := os.Getwd()
+    if err != nil {
+        return "", err
+    }
+
+    // Traverse upwards from the current working directory
+    for cwd != "/" {
+        // Check if "go.mod" exists in the current directory (indicating root)
+        if _, err := os.Stat(filepath.Join(cwd, "go.mod")); !os.IsNotExist(err) {
+            return cwd, nil
+        }
+        cwd = filepath.Dir(cwd) // Go up one directory
+    }
+
+    return "", fmt.Errorf("could not find project root")
 }

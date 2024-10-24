@@ -11,10 +11,9 @@ import (
 World is where where all of the actual client logic is contained, such as Moving or ChatMessages
 */
 type World struct {
-	// TODO Why is there clients here?
-	Clients map[string]*types.Client
-
+	Clients  map[string]*types.Client
 	handlers []handlers.Handler
+	level    *Level
 
 	// Time
 	lastFrameTime time.Time
@@ -24,9 +23,14 @@ func NewWorld() *World {
 	// Define the different handlers
 	var inputHandler handlers.InputHandler
 
+	level := NewLevel()
+
 	return &World{
-		Clients:  make(map[string]*types.Client),
-		handlers: []handlers.Handler{0: &inputHandler},
+		Clients: make(map[string]*types.Client),
+		handlers: []handlers.Handler{
+			0: &inputHandler,
+		},
+		level: level,
 	}
 }
 
@@ -35,22 +39,28 @@ func (w *World) SimulateOnce() {
 	w.lastFrameTime = time.Now()
 
 	for _, client := range w.Clients {
-		/* TODO
-		Collision checks
-		Valid move
-		*/
-
 		currentTime := time.Now()
 		deltaTime := currentTime.Sub(w.lastFrameTime).Seconds()
 
-		posX := client.Position.PosX
+		posX := client.Object.Position.X
 		posX += float32(client.Input.InputX) * 200000 * float32(deltaTime)
 
-		posY := client.Position.PosY
+		posY := client.Object.Position.Y
 		posY += float32(client.Input.InputY) * 200000 * float32(deltaTime)
 
-		client.Position.PosX = posX
-		client.Position.PosY = posY
+		// Collision check
+		for _, object := range w.level.Objects {
+			// TODO Do not check the whole level, check collisions at a radious
+			if w.level.IsObjectColliding(client.Object, object) {
+				fmt.Printf("%v collided wih %v\n", client.Object.Name, object.Name)
+				// If we collide do not move to that position, move it to the edge
+				posX = object.Position.X 
+				posY = object.Position.Y
+			}
+		}
+
+		client.Object.Position.X = posX
+		client.Object.Position.Y = posY
 
 		fmt.Printf("client status %v\n", client)
 	}
