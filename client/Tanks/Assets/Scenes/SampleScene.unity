@@ -341,17 +341,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1741922036 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6459780573482149995, guid: 942aed7708acbf5839eae3bb435ec8cd, type: 3}
+--- !u!1 &1143343941 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9099483288835442994, guid: 942aed7708acbf5839eae3bb435ec8cd, type: 3}
   m_PrefabInstance: {fileID: 7156621086643208646}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+--- !u!114 &1741922038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1143343941}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 732ea770422279956a2dec76e1070824, type: 3}
+  m_Script: {fileID: 11500000, guid: b577dbf0edb830015b9872936e045eba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serverAddress: localhost
 --- !u!1001 &1480209561409700309
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -407,7 +414,7 @@ PrefabInstance:
     - target: {fileID: 4735607089506396580, guid: 6d582c4603817d4cfb29e12ba7591cb7, type: 3}
       propertyPath: serverConnector
       value: 
-      objectReference: {fileID: 1741922036}
+      objectReference: {fileID: 1741922038}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -465,10 +472,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: ServerConnector
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 6459780573482149995, guid: 942aed7708acbf5839eae3bb435ec8cd, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 9099483288835442994, guid: 942aed7708acbf5839eae3bb435ec8cd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1741922038}
   m_SourcePrefab: {fileID: 100100000, guid: 942aed7708acbf5839eae3bb435ec8cd, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

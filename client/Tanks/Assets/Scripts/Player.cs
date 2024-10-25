@@ -1,3 +1,4 @@
+using GameServerConnector;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -11,18 +12,19 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        if(GlobalOptions.PlayerClientId == "") return;
+        if (serverConnector == null || serverConnector.ClientId == "")
+        {
+            return;
+        }
 
         var horizontal = Input.GetAxisRaw("Horizontal");
         var vertical = Input.GetAxisRaw("Vertical");
 
-        serverConnector.AddClientState(new ClientState
-        {
-            InputX = (sbyte)horizontal,
-            InputY = (sbyte)vertical,
-            Type = 0,   // type of the state being sent
-            ClientId = GlobalOptions.PlayerClientId
-        });
+        serverConnector.AddClientState(
+            (sbyte)horizontal,
+            (sbyte)vertical,
+            (int)MessagesType.ClientState
+        );
 
         if (!serverOnlyMovement)
         {
