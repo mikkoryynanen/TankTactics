@@ -9,8 +9,9 @@ import (
 
 func main() {
 	godotenv.Load()
+
 	fmt.Println("starting server..")
+
 	app := app.NewApp()
-	// var app App
 	app.Run()
 }

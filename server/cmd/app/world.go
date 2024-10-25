@@ -49,15 +49,15 @@ func (w *World) SimulateOnce() {
 		posY += float32(client.Input.InputY) * 200000 * float32(deltaTime)
 
 		// Collision check
-		for _, object := range w.level.Objects {
-			// TODO Do not check the whole level, check collisions at a radious
-			if w.level.IsObjectColliding(client.Object, object) {
-				fmt.Printf("%v collided wih %v\n", client.Object.Name, object.Name)
-				// If we collide do not move to that position, move it to the edge
-				posX = object.Position.X 
-				posY = object.Position.Y
-			}
-		}
+		// for _, object := range w.level.Objects {
+		// 	// TODO Do not check the whole level, check collisions at a radious
+		// 	if w.level.IsObjectColliding(client.Object, object) {
+		// 		fmt.Printf("%v collided wih %v\n", client.Object.Name, object.Name)
+		// 		// If we collide do not move to that position, move it to the edge
+		// 		posX = object.Position.X 
+		// 		posY = object.Position.Y
+		// 	}
+		// }
 
 		client.Object.Position.X = posX
 		client.Object.Position.Y = posY
@@ -70,6 +70,6 @@ func (w *World) AddMessage(messageType int32, clientId string, block []byte) {
 	if client, exists := w.Clients[clientId]; exists {
 		w.handlers[messageType].Handle(block, client)
 	} else {
-		fmt.Printf("Did not find client with %v\n", clientId)
+		fmt.Printf("Did not find client with id %v\n", clientId)
 	}
 }

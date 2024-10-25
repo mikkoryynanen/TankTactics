@@ -1,10 +1,16 @@
 package app
 
-import "testing"
+import (
+	"main/cmd/utils"
+	"path/filepath"
+	"testing"
+)
 
 func TestLevel(t *testing.T) {
-	// TODO DO NOT COMMIT THIS 
-	t.Setenv("LEVEL_FILE_PATH", "/home/mikko/Projects/TankTactics/server/data/level.json")
+	levelPath, _ := utils.FindProjectRoot()
+	levelPath = filepath.Join(levelPath, "data", "level.json")
+	t.Setenv("LEVEL_FILE_PATH", levelPath)
+
 	level := NewLevel()	
 	if level == nil {
 		t.Error("Cound not create level")	

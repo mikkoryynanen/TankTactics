@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"log"
 	"main/cmd/types"
+	"main/cmd/utils"
 	"os"
+	"path/filepath"
 )
 
 // Level represents the loaded information about a level. This includes the static objects inside the world
@@ -13,8 +15,9 @@ type Level struct {
 }
 
 func NewLevel() *Level {
-	// TODO Load this from S3 or similiar
-	data, err := os.ReadFile(os.Getenv("LEVEL_FILE_PATH"))
+	levelPath, _ := utils.FindProjectRoot()
+	levelPath = filepath.Join(levelPath, "data", "level.json")
+	data, err := os.ReadFile(levelPath)
 	if err != nil {
 		log.Print("could not load level.json")
 		return nil

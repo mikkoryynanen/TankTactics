@@ -2,83 +2,53 @@ package app
 
 import (
 	"fmt"
-	"log"
 	"main/cmd/database"
+	"main/cmd/events"
+	"main/cmd/network"
 	"main/cmd/routes"
-	"net/http"
-
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
 )
 
 type App struct {
-	hub      Hub
-	upgrader websocket.Upgrader
-
-	database *database.Database
-
+	hub         Hub
+	network     network.Network
+	database    *database.Database
 	userHandler *routes.UserHandler
+
+	eventEmitter *events.EventEmitter
 }
 
 func NewApp() *App {
 	db := database.NewDatabase()
+	eventEmitter := events.NewEventEmiter()
 	return &App{
 		hub:         *NewHub(),
+		network:     network.NewWebsocket(*eventEmitter),
 		database:    db,
 		userHandler: routes.NewUserHandler(db),
+
+		eventEmitter: eventEmitter,
 	}
 }
 
-func (a *App) handleConnection(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Connection received")
+func (a *App) Run() {
+	a.eventEmitter.On(events.EventOnClientConnected, a.onClientConnected)
+	a.eventEmitter.On(events.EventOnClientJoinRoom, a.onClientJoinRoom)
 
-	c, err := a.upgradeConnection(w, r)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	a.hub.AddRoom(c)
+	a.network.Connect()
 }
 
-func (a *App) handleRoomConnection(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Connection received. Connecting to room...")
+func (a *App) onClientConnected(event events.Event) {
+	// TODO Crashes here
+	connectionEvent := event.(events.ConnectionEvent)
+	a.hub.AddRoom(connectionEvent.Conn)
+}
 
-	queryParams := r.URL.Query()
-	roomId, err := uuid.Parse(queryParams.Get("roomId"))
-	if err != nil {
-		fmt.Println("failed to parse roomId")
-		return
-	}
-	c, err := a.upgradeConnection(w, r)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	isConnected := a.hub.ConnectToRoom(roomId, c)
+func (a *App) onClientJoinRoom(event events.Event) {
+	roomConnectionEvent := event.(events.RoomConnectionEvent)
+	isConnected := a.hub.ConnectToRoom(roomConnectionEvent.RoomId, roomConnectionEvent.Conn)
 	if !isConnected {
-		c.Close()
+		roomConnectionEvent.Conn.Close()
 	}
 
-	fmt.Printf("isConnected? %v to room %v\n", isConnected, roomId)
-}
-
-func (a App) upgradeConnection(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
-	c, err := a.upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println("Could not upgrade HTTP connection to Websocket")
-		return nil, err
-	}
-	return c, nil
-}
-
-func (a App) Run() {
-	r := mux.NewRouter()
-	r.HandleFunc("/c", a.handleConnection)
-	r.HandleFunc("/c/room", a.handleRoomConnection)
-
-	// TODO users disabled for now
-	// r.PathPrefix("/user").Handler(routes.UserRouter())
-
-	log.Fatal(http.ListenAndServe(":8080", r))
+	fmt.Printf("isConnected? %v to room %v\n", isConnected, roomConnectionEvent.RoomId)
 }

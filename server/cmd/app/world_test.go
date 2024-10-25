@@ -34,9 +34,9 @@ func testHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func TestWorld(t *testing.T) {
-	root, _ := utils.FindProjectRoot()
-	root = filepath.Join(root, "data", "level.json")
-	t.Setenv("LEVEL_FILE_PATH", root)
+	levelPath, _ := utils.FindProjectRoot()
+	levelPath = filepath.Join(levelPath, "data", "level.json")
+	t.Setenv("LEVEL_FILE_PATH", levelPath)
 
 	server := httptest.NewServer(http.HandlerFunc(testHandler))
 	u, _ := url.Parse(server.URL)
